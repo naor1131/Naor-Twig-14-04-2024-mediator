@@ -35,7 +35,6 @@ export class Mediator {
 
   async loadConfig() {
     try {
-      console.log("this.configUrl", this.configUrl);
       const response = await fetch(this.configUrl);
       const config = await response.json();
       this.config = config;
