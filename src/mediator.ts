@@ -16,7 +16,7 @@ export class Mediator {
     this.port = port;
 
     this.wsServer = new WebSocket.Server({ port }, () => {
-      console.log(`WebSocket server is running at "ws://localhost:${port}"`);
+      console.log(`WebSocket server is running on port: ${port}"`);
     });
     this.connectedClients = new Map<string, WebSocket>();
 
