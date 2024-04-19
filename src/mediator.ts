@@ -1,7 +1,6 @@
 import WebSocket from "ws";
-import { GameConfiguration, WSMessage } from "../shared/types";
+import { DEFAULT_GAME_CONFIG, GameConfiguration, WSMessage } from "../shared/types";
 import url from "url";
-
 export class Mediator {
   private port: number;
 
@@ -22,7 +21,7 @@ export class Mediator {
     this.connectedClients = new Map<string, WebSocket>();
 
     this.configUrl = configUrl;
-    this.config = { pollingFrequency: 1000, scoreRange: { min: 0, max: 100 }, allowedClients: ["client3", "client4"] };
+    this.config = ;
 
     this.pollingIntervalId = null;
 
@@ -36,6 +35,7 @@ export class Mediator {
       const config = await response.json();
       this.config = config;
     } catch (err) {
+      this.config = DEFAULT_GAME_CONFIG;
       console.error("Error loading config:", err);
     }
   }
