@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import { DEFAULT_GAME_CONFIG, GameConfiguration, WSMessage } from "../shared/types";
 import url from "url";
+import http from "http";
 import express from "express";
 
 export class Mediator {
@@ -17,8 +18,11 @@ export class Mediator {
   constructor(configUrl: string, port: number) {
     this.port = port;
 
-    const httpServer = express().listen(port, () => console.log(`Listening on ${port}`));
-    this.wsServer = new WebSocket.Server({ server: httpServer }, () => {
+    const app = express();
+    const server = http.createServer(app);
+    server.listen(port);
+
+    this.wsServer = new WebSocket.Server({ server }, () => {
       console.log(`WebSocket server is running on port: ${port}"`);
     });
 
@@ -29,19 +33,21 @@ export class Mediator {
 
     this.pollingIntervalId = null;
 
+    this.enableWebSocketConnections();
+    this.startPolling();
+
     // fetch config and only then start polling.
-    this.loadConfig()
-      .catch((err) => {
-        console.log("* error loading config, using default config.");
-      })
-      .then(() => this.enableWebSocketConnections)
-      .then(() => this.startPolling);
+    // this.loadConfig()
+    //   .catch(() => {})
+    //   .then(() => this.enableWebSocketConnections())
+    //   .then(() => this.startPolling());
   }
 
   async loadConfig() {
     try {
       const response = await fetch(this.configUrl);
       const config = await response.json();
+      console.log("FETCHED CONFIG", config);
       this.config = config;
     } catch (err) {
       throw err;
@@ -49,17 +55,19 @@ export class Mediator {
   }
 
   enableWebSocketConnections() {
+    console.log("enableWebSocketConnections");
     // set a listener for new client connections to the server.
     this.wsServer.on("connection", (ws, req) => {
+      ws.send(JSON.stringify("connected to WS server"));
       // get the clientId from the request.
       const query = url.parse(req.url as string, true).query;
       const clientId = query["clientId"] as string;
 
       console.log(`Client Connected (${clientId}).`);
 
-      // Close the connection with status code 1008 (policy violation) if client is not on the list.
-      if (!this.config.allowedClients.includes(clientId.toLowerCase())) {
-        ws.close(403, "Error - Client is not registered.");
+      // Close the connection with status code 1008 (policy violation) if client is not registered.
+      if (!this.config.allowedClients.includes(clientId)) {
+        ws.close(1008, "Error - Client is not registered.");
         return;
       }
 
