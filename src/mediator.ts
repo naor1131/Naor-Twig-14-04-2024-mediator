@@ -21,7 +21,7 @@ export class Mediator {
     this.connectedClients = new Map<string, WebSocket>();
 
     this.configUrl = configUrl;
-    this.config = ;
+    this.config = DEFAULT_GAME_CONFIG;
 
     this.pollingIntervalId = null;
 
@@ -35,8 +35,7 @@ export class Mediator {
       const config = await response.json();
       this.config = config;
     } catch (err) {
-      this.config = DEFAULT_GAME_CONFIG;
-      console.error("Error loading config:", err);
+      console.error("Error loading config, using default config:", err);
     }
   }
 
