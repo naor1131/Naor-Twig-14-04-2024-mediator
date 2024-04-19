@@ -16,7 +16,7 @@ export class Mediator {
     this.port = port;
 
     this.wsServer = new WebSocket.Server({ port }, () => {
-      console.log(`WebSocket server is running on port: ${port}"`);
+      console.log(`WebSocket server is running on port: ${443}"`);
     });
 
     this.connectedClients = new Map<string, WebSocket>();
@@ -28,7 +28,9 @@ export class Mediator {
 
     // fetch config and only then start polling.
     this.loadConfig()
-      .catch((err) => {})
+      .catch((err) => {
+        console.log('* error loading config, using default config.')
+      })
       .then(() => this.enableWebSocketConnections)
       .then(() => this.startPolling);
   }
