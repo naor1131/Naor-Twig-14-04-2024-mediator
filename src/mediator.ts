@@ -18,6 +18,7 @@ export class Mediator {
     this.wsServer = new WebSocket.Server({ port }, () => {
       console.log(`WebSocket server is running on port: ${port}"`);
     });
+
     this.connectedClients = new Map<string, WebSocket>();
 
     this.configUrl = configUrl;
@@ -26,7 +27,10 @@ export class Mediator {
     this.pollingIntervalId = null;
 
     // fetch config and only then start polling.
-    this.loadConfig().then(this.enableWebSocketConnections).then(this.startPolling);
+    this.loadConfig()
+      .catch(() => console.log("error fetching game config - using default"))
+      .then(() => this.enableWebSocketConnections)
+      .then(() => this.startPolling);
   }
 
   async loadConfig() {
@@ -35,11 +39,12 @@ export class Mediator {
       const config = await response.json();
       this.config = config;
     } catch (err) {
-      console.error("Error loading config, using default config:", err);
+      console.error("Error loading config - using default", err);
     }
   }
 
   enableWebSocketConnections() {
+    console.log("this.wsServer", this);
     // set a listener for new client connections to the server.
     this.wsServer.on("connection", (ws, req) => {
       // get the clientId from the request.
