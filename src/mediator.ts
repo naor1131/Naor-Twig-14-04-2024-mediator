@@ -1,6 +1,8 @@
 import WebSocket from "ws";
 import { DEFAULT_GAME_CONFIG, GameConfiguration, WSMessage } from "../shared/types";
 import url from "url";
+import express from "express";
+
 export class Mediator {
   private port: number;
 
@@ -15,8 +17,9 @@ export class Mediator {
   constructor(configUrl: string, port: number) {
     this.port = port;
 
-    this.wsServer = new WebSocket.Server({ port }, () => {
-      console.log(`WebSocket server is running on port: ${443}"`);
+    const httpServer = express().listen(port, () => console.log(`Listening on ${port}`));
+    this.wsServer = new WebSocket.Server({ server: httpServer }, () => {
+      console.log(`WebSocket server is running on port: ${port}"`);
     });
 
     this.connectedClients = new Map<string, WebSocket>();
@@ -29,7 +32,7 @@ export class Mediator {
     // fetch config and only then start polling.
     this.loadConfig()
       .catch((err) => {
-        console.log('* error loading config, using default config.')
+        console.log("* error loading config, using default config.");
       })
       .then(() => this.enableWebSocketConnections)
       .then(() => this.startPolling);
@@ -41,7 +44,7 @@ export class Mediator {
       const config = await response.json();
       this.config = config;
     } catch (err) {
-      throw(err);
+      throw err;
     }
   }
 
@@ -87,7 +90,7 @@ export class Mediator {
         // broadcast the score to all clients.
         this.broadcast(wsMessage);
       } catch (err) {
-        throw(err)
+        throw err;
       }
     }, this.config.pollingFrequency);
   }
