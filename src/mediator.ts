@@ -28,23 +28,23 @@ export class Mediator {
 
     // fetch config and only then start polling.
     this.loadConfig()
-      .catch(() => console.log("error fetching game config - using default"))
+      .catch((err) => {})
       .then(() => this.enableWebSocketConnections)
       .then(() => this.startPolling);
   }
 
   async loadConfig() {
     try {
+      console.log("this.configUrl", this.configUrl);
       const response = await fetch(this.configUrl);
       const config = await response.json();
       this.config = config;
     } catch (err) {
-      console.error("Error loading config - using default", err);
+      throw(err);
     }
   }
 
   enableWebSocketConnections() {
-    console.log("this.wsServer", this);
     // set a listener for new client connections to the server.
     this.wsServer.on("connection", (ws, req) => {
       // get the clientId from the request.
@@ -86,7 +86,7 @@ export class Mediator {
         // broadcast the score to all clients.
         this.broadcast(wsMessage);
       } catch (err) {
-        console.error("Error fetching/broadcasting score:", err);
+        throw(err)
       }
     }, this.config.pollingFrequency);
   }
